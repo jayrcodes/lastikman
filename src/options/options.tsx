@@ -1,14 +1,18 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { MantineProvider, createTheme } from "@mantine/core";
 
-import './options.css';
+import "@mantine/core/styles.css";
 
-import App from './App';
+import App from "./App";
 
-const root = createRoot(document.getElementById('app'))
+const theme = createTheme({});
+
+const root = createRoot(document.getElementById("app"));
 root.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+    <MantineProvider theme={theme} defaultColorScheme="dark">
+      <App />
+    </MantineProvider>
+  </React.StrictMode>
 );
-

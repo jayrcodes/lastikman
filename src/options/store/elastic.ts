@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import axios from 'axios';
-import _get from 'lodash.get';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import axios from "axios";
+import _get from "lodash.get";
 
 interface ElasticState {
   baseUrl: string;
@@ -13,6 +13,7 @@ interface ElasticState {
   setIndexPattern: (indexPattern: string) => void;
   getStats: () => Promise<any>;
   getMapping: () => Promise<any>;
+  search: (field: string, value: any) => Promise<any>;
   clear: () => void;
 }
 
@@ -21,10 +22,10 @@ const base: any = ({ baseUrl, indexPattern }) => `${baseUrl}/${indexPattern}`;
 export const useElasticStore = create<ElasticState>()(
   persist(
     (set, get) => ({
-      baseUrl: '',
-      indexPattern: '',
+      baseUrl: "",
+      indexPattern: "",
       currentFields: [],
-      currentField: '',
+      currentField: "",
       result: null,
 
       setBaseUrl: (baseUrl: string) => set({ baseUrl }),
@@ -68,14 +69,14 @@ export const useElasticStore = create<ElasticState>()(
         return response.data;
       },
 
-      async filter(field: string, value: any) {
-        const response = await axios.get(`${base(get())}/_stats`);
+      async search(field: string, value: any) {
+        const response = await axios.get(`${base(get())}/_search`);
         set({ result: response.data });
         return response.data;
       },
     }),
     {
-      name: 'elastic-storage',
+      name: "elastic-storage",
       storage: createJSONStorage(() => sessionStorage),
     }
   )

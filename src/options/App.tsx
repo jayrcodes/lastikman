@@ -1,6 +1,19 @@
-import { useElasticStore } from './store/elastic';
+import { useElasticStore } from "./store/elastic";
+import { useDisclosure } from "@mantine/hooks";
+import {
+  AppShell,
+  Burger,
+  Button,
+  Code,
+  Flex,
+  Loader,
+  Table,
+  TextInput,
+} from "@mantine/core";
+import _get from "lodash.get";
 
 function App() {
+  const [opened, { toggle }] = useDisclosure();
   const baseUrl = useElasticStore((state) => state.baseUrl);
   const indexPattern = useElasticStore((state) => state.indexPattern);
   const result = useElasticStore((state) => state.result);
@@ -9,79 +22,86 @@ function App() {
   const setIndexPattern = useElasticStore((state) => state.setIndexPattern);
   const getStats = useElasticStore((state) => state.getStats);
   const getMapping = useElasticStore((state) => state.getMapping);
+  const search = useElasticStore((state) => state.search);
   const clear = useElasticStore((state) => state.clear);
 
+  const isHits = result?.hits;
+
+  const rows = result?.hits?.hits?.map((hit) => (
+    <Table.Tr key={hit._id}>
+      {currentFields
+        // .filter((field) => typeof _get(hit, `_source.${field}`) !== "object")
+        .map((field) => (
+          <Table.Td key={field}>
+            {JSON.stringify(_get(hit, `_source.${field}`))}
+          </Table.Td>
+        ))}
+    </Table.Tr>
+  ));
+
   return (
-    <>
-      <section className="flex space-x-2 m-2">
-        <div className="flex items-center flex-1 space-x-2">
-          <label htmlFor="base_url">Base Url</label>
-          <input
-            name="base_url"
-            onChange={(e) => setBaseUrl(e.target.value)}
-            value={baseUrl}
-            type="text"
-            className="flex-1 border border-gray-500 rounded-md p-2"
-            placeholder="Base Url"
-          />
-        </div>
-        <div className="flex items-center flex-1 space-x-2">
-          <label htmlFor="base_url">Index Pattern</label>
-          <input
-            onChange={(e) => setIndexPattern(e.target.value)}
-            value={indexPattern}
-            type="text"
-            className="flex-1 border border-gray-500 rounded-md p-2"
-            placeholder="Index Pattern"
-          />
-        </div>
-        <select name="categories" id="category">
-          <option value="all">All</option>
-          <option value="indices">Indices</option>
-          <option value="nodes">Nodes</option>
-          <option value="shards">Shards</option>
-        </select>
-        <button
-          className="p-2 bg-green-600 rounded-md text-white"
-          onClick={getStats}
-        >
-          Run
-        </button>
-        <button
-          className="p-2 border rounded-md "
-          onClick={getMapping}
-        >
-          Fields
-        </button>
-        <button
-          className="p-2 bg-red-600 rounded-md text-white"
-          onClick={clear}
-        >
-          Clear
-        </button>
-      </section>
-      <section className="m-2">
-        <div className="flex items-center flex-1 space-x-2">
-          <label htmlFor="base_url">Where</label>
-          <input
-            name="base_url"
-            onChange={(e) => setBaseUrl(e.target.value)}
-            value={baseUrl}
-            type="text"
-            className="flex-1 border border-gray-500 rounded-md p-2"
-            placeholder="Base Url"
-          />
-        </div>
-      </section>
-      <section className="flex">
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+        <div>Logo</div>
+      </AppShell.Header>
+
+      <AppShell.Navbar p="md">Navbar</AppShell.Navbar>
+
+      <AppShell.Main>
         <section>
-          <pre>{JSON.stringify(result, null, 2)}</pre>
+          <Flex gap="md" align="flex-end" mb="md">
+            <TextInput
+              label="Base Url"
+              placeholder="Base Url"
+              value={baseUrl}
+              onChange={(event) => setBaseUrl(event.currentTarget.value)}
+            />
+            <TextInput
+              label="Index Pattern"
+              placeholder="Index Pattern"
+              value={indexPattern}
+              onChange={(event) => setIndexPattern(event.currentTarget.value)}
+            />
+            <Button variant="filled" color="teal" onClick={getStats}>
+              Run
+            </Button>
+            <Button variant="filled" onClick={getMapping}>
+              Mapping
+            </Button>
+            <Button variant="filled" onClick={search}>
+              Search
+            </Button>
+            <Button variant="filled" color="red" onClick={clear}>
+              Clear
+            </Button>
+          </Flex>
         </section>
+        {/* <Loader color="blue" size="sm" mb="md" /> */}
         <section>
-          <pre>{JSON.stringify(currentFields, null, 2)}</pre>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                {currentFields
+                  // .filter((field) => !field.includes("."))
+                  .map((field) => (
+                    <Table.Th key={field}>{field}</Table.Th>
+                  ))}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{rows}</Table.Tbody>
+          </Table>
+          <Flex gap="md">
+            <Code block>{JSON.stringify(result, null, 6)}</Code>
+            <Code block>{JSON.stringify(currentFields, null, 6)}</Code>
+          </Flex>
         </section>
-      </section>
-    </>
+      </AppShell.Main>
+    </AppShell>
   );
 }
 
