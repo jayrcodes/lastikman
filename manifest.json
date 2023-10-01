@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Elasticman",
+  "version": "1.0",
+  "description": "Prototype Elasticsearch GUI",
+  "content_scripts": [
+    {
+      "js": ["content_script.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "options_page": "options.html",
+  "permissions": [
+    "storage"
+  ]
+}
